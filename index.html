@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Image to Excel</title>
+</head>
+<body>
+  <h1>Add Image to Excel Sheet</h1>
+  <input type="file" id="imageInput" accept="image/*">
+  <button onclick="addImage()">Submit</button>
+  <button onclick="downloadExcel()">Download Excel</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script>
+  <script>
+    let imageData;
+
+    function addImage() {
+      const fileInput = document.getElementById('imageInput');
+      const file = fileInput.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(file);
+        reader.onload = function(event) {
+          imageData = event.target.result;
+          alert('Image added successfully!');
+        };
+        reader.onerror = function(event) {
+          console.error("File could not be read! Code " + event.target.error.code);
+        };
+      } else {
+        alert('Please select an image file.');
+      }
+    }
+
+    function downloadExcel() {
+      if (!imageData) {
+        alert('Please add an image first.');
+        return;
+      }
+
+      const workbook = XLSX.utils.book_new();
+      const sheet = XLSX.utils.aoa_to_sheet([
+        ['Image'],
+        [imageData]
+      ]);
+      XLSX.utils.book_append_sheet(workbook, sheet, 'Image Sheet');
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+      const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'image_sheet.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }, 0);
+    }
+  </script>
+</body>
+</html>
